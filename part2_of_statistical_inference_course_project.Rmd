@@ -1,0 +1,150 @@
+---
+title: "Statistical Inference Course Project (Part 2)"
+author: "BELMOUIDI Mohamed"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document:
+    toc: false
+    df_print: kable
+    number_sections: false
+    fig_caption: yes
+    highlight: tango
+    dev: pdf
+---
+
+## Course Project
+
+**Basic Inferential Data Analysis**
+
+### Instructions
+
+* Load the ToothGrowth data and perform some basic exploratory data analyses
+* Provide a basic summary of the data.
+* Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there are other approaches worth considering.)
+* State your conclusions and the assumptions needed for your conclusions.
+
+---
+
+### Exploratory Data Analysis
+
+First, we load the required packages and the dataset:
+
+```{r, echo=FALSE}
+# Load required packages
+library(dplyr, warn.conflicts = FALSE)
+library(ggplot2)
+library(ggthemes)
+
+# Load data and convert to tbl format
+ToothGrowth <- tbl_df(ToothGrowth)
+```
+
+We examine the structure and summarize the dataset:
+
+```{r, echo=FALSE}
+# Structure of the dataframe
+str(ToothGrowth)
+
+# Summary
+summary(ToothGrowth)
+```
+
+We observe the unique values of the `dose` variable:
+
+```{r, echo=FALSE}
+# Unique values in the dose vector
+unique(ToothGrowth$dose)
+```
+
+The `dose` variable contains three unique values (0.5, 1, 2). We convert it to a factor:
+
+```{r, echo=FALSE}
+# Convert dose to a factor
+ToothGrowth <- ToothGrowth %>% mutate(dose = as.factor(dose))
+```
+
+#### Plots
+
+```{r, echo=FALSE, fig.height=3}
+ToothGrowth %>%
+  ggplot(aes(x = dose, y = len, fill = supp)) +
+  geom_boxplot() +
+  facet_grid(. ~ supp) +
+  scale_fill_brewer(palette = "Set1") +
+  theme_bw() +
+  ggtitle("Teeth Length vs Dose Level \nby Supplement Type") +
+  labs(x = "Dose (mg)", y = "Teeth Length") +
+  guides(fill = guide_legend(title = "Supplement Type"))
+```
+
+```{r, echo=FALSE, fig.height=3}
+ToothGrowth %>%
+  ggplot(aes(x = supp, y = len)) +
+  geom_boxplot(aes(fill = supp)) +
+  facet_wrap(~ dose) +
+  scale_fill_brewer(palette = "Set1") +
+  theme_bw() +
+  ggtitle("Teeth Length vs Supplement Type \nby Dose Level") +
+  labs(x = "Supplement Type", y = "Teeth Length") +
+  guides(fill = guide_legend(title = "Supplement Type"))
+```
+
+---
+
+### Hypothesis Tests
+
+We conduct statistical tests to compare teeth growth by supplement type and dose levels. 
+
+#### Test by Dose Levels
+
+* ##### Test A: Dose = 0.5 and Dose = 1
+
+```{r, echo=FALSE}
+len_a <- ToothGrowth %>% filter(dose %in% c(0.5, 1)) %>% pull(len)
+dose_a <- ToothGrowth %>% filter(dose %in% c(0.5, 1)) %>% pull(dose)
+Test.a <- t.test(len_a ~ dose_a)
+Test.a
+```
+
+* ##### Test B: Dose = 0.5 and Dose = 2
+
+```{r, echo=FALSE}
+len_b <- ToothGrowth %>% filter(dose %in% c(0.5, 2)) %>% pull(len)
+dose_b <- ToothGrowth %>% filter(dose %in% c(0.5, 2)) %>% pull(dose)
+Test.b <- t.test(len_b ~ dose_b)
+Test.b
+```
+
+* ##### Test C: Dose = 1 and Dose = 2
+
+```{r, echo=FALSE}
+len_c <- ToothGrowth %>% filter(dose %in% c(1, 2)) %>% pull(len)
+dose_c <- ToothGrowth %>% filter(dose %in% c(1, 2)) %>% pull(dose)
+Test.c <- t.test(len_c ~ dose_c)
+Test.c
+```
+
+#### Test by Supplement Type
+
+```{r, echo=FALSE}
+len <- ToothGrowth %>% pull(len)
+supp <- ToothGrowth %>% pull(supp)
+Test.supp <- t.test(len ~ supp)
+Test.supp
+```
+
+---
+
+### Conclusions
+
+**Key Findings:**
+
+1. There is a statistically significant relationship between dose levels and teeth length (p-values < 0.05 in all dose comparisons).
+2. No statistically significant difference exists between supplement types (p-value = 0.06).
+
+**Assumptions for Validity:**
+
+- Independence of samples: Random sampling or assignment.
+- Normality of population distributions.
+
+These assumptions are critical to ensure the validity of t-test results.
